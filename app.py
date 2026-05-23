@@ -137,16 +137,21 @@ def derive_title(messages):
 def get_llm():
     if LLM_PROVIDER == "anthropic":
         from langchain_anthropic import ChatAnthropic
+        api_key = get_config("ANTHROPIC_API_KEY", "")
         api_url = get_config("ANTHROPIC_API_URL", None)
         kwargs = {"model_name": LLM_MODEL_NAME}
+        if api_key:
+            kwargs["anthropic_api_key"] = api_key
         if api_url:
             kwargs["anthropic_api_url"] = api_url
         return ChatAnthropic(**kwargs)
     elif LLM_PROVIDER == "openai":
         from langchain_openai import ChatOpenAI
+        api_key = get_config("OPENAI_API_KEY", "")
         api_base = get_config("OPENAI_API_BASE", "https://api.openai.com/v1")
         return ChatOpenAI(
             model=LLM_MODEL_NAME,
+            openai_api_key=api_key,
             openai_api_base=api_base,
             temperature=0.7,
         )
