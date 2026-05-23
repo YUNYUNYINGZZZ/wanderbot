@@ -11,3 +11,4 @@ langchain-mcp-adapters>=0.1.0
 mcp[cli]>=1.0.0
 python-dotenv>=1.0.0
 streamlit>=1.40.0
+markdown>=3.5.0

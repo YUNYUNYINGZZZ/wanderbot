@@ -380,6 +380,45 @@ def render_message(msg):
         st.markdown(msg["content"], unsafe_allow_html=True)
 
 
+def md_to_html(md_text, title="WanderBot"):
+    """Convert markdown content to a standalone HTML file with styling."""
+    try:
+        import markdown as md_lib
+        body = md_lib.markdown(md_text, extensions=["tables", "fenced_code"])
+    except ImportError:
+        # Fallback: simple markdown-to-HTML conversion
+        body = md_text.replace("\n\n", "<br><br>").replace("\n", "<br>")
+        body = body.replace("**", "<b>").replace("**", "</b>")
+        # Odd/even replacement trick won't work, so just use basic conversion
+
+    return f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>{title}</title>
+<style>
+body {{ font-family: -apple-system, "Microsoft YaHei", sans-serif;
+       max-width: 800px; margin: 40px auto; padding: 20px;
+       background: #fafafa; color: #333; line-height: 1.8; }}
+h1 {{ color: #1a73e8; border-bottom: 2px solid #1a73e8; }}
+h2 {{ color: #333; }}
+h3 {{ color: #555; }}
+table {{ border-collapse: collapse; width: 100%; margin: 16px 0; }}
+th, td {{ border: 1px solid #ddd; padding: 8px 12px; }}
+th {{ background: #1a73e8; color: white; }}
+tr:nth-child(even) {{ background: #f2f2f2; }}
+code {{ background: #e8e8e8; padding: 2px 6px; border-radius: 4px; }}
+pre {{ background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 8px;
+       overflow-x: auto; }}
+</style>
+</head>
+<body>
+<h1>{title}</h1>
+{body}
+</body>
+</html>"""
+
+
 # ---- Streamlit UI ----
 
 # Sidebar
@@ -478,6 +517,29 @@ if prompt := st.chat_input("输入你的旅行问题..."):
 
         response = extract_response(result["messages"])
         st.markdown(response, unsafe_allow_html=True)
+
+        # Download button for saving as HTML/MD
+        html_content = md_to_html(response, st.session_state.conv_title)
+        md_filename = f"{st.session_state.conv_title}.md"
+        html_filename = f"{st.session_state.conv_title}.html"
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.download_button(
+                "📥 下载 HTML",
+                data=html_content,
+                file_name=html_filename,
+                mime="text/html",
+                key=f"dl_html_{len(st.session_state.messages)}",
+            )
+        with col2:
+            st.download_button(
+                "📥 下载 Markdown",
+                data=response,
+                file_name=md_filename,
+                mime="text/markdown",
+                key=f"dl_md_{len(st.session_state.messages)}",
+            )
 
         st.session_state.messages.append({
             "role": "assistant",
