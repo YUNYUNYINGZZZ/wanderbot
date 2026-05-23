@@ -1,0 +1,7 @@
+{
+  "travel_plans": {
+    "command": "python",
+    "args": ["mcp_server.py"],
+    "transport": "stdio"
+  }
+}
