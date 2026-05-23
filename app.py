@@ -212,13 +212,18 @@ def create_rag_tool():
 
 
 async def load_mcp_tools():
-    from langchain_mcp_adapters.client import MultiServerMCPClient
+    """Load MCP tools. Returns empty list if MCP server cannot start (e.g. on Streamlit Cloud)."""
+    try:
+        from langchain_mcp_adapters.client import MultiServerMCPClient
 
-    config_path = Path(__file__).parent / MCP_CONFIG_PATH
-    mcp_config = json.loads(config_path.read_text(encoding="utf-8"))
-    client = MultiServerMCPClient(mcp_config)
-    mcp_tools = await client.get_tools()
-    return list(mcp_tools)
+        config_path = Path(__file__).parent / MCP_CONFIG_PATH
+        mcp_config = json.loads(config_path.read_text(encoding="utf-8"))
+        client = MultiServerMCPClient(mcp_config)
+        mcp_tools = await client.get_tools()
+        return list(mcp_tools)
+    except Exception as e:
+        st.warning(f"MCP 服务器无法启动（云端部署不支持子进程），旅行计划文件功能暂不可用。")
+        return []
 
 
 def load_system_prompt() -> str:
