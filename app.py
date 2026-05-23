@@ -21,21 +21,31 @@ load_dotenv()
 
 
 def get_config(key, default=""):
-    """Read config from env vars, falling back to Streamlit secrets."""
+    """Read config from env vars, falling back to Streamlit secrets.
+    Also syncs secrets into os.environ so SDKs like langchain-anthropic can find them."""
     val = os.getenv(key, "")
     if not val:
         try:
             val = st.secrets[key]
+            # Write back to os.environ so external SDKs can read it
+            os.environ[key] = str(val)
         except (KeyError, FileNotFoundError):
             pass
     return val or default
 
 
+# Load all config, syncing Streamlit secrets into os.environ for SDK compatibility
 LLM_PROVIDER = get_config("LLM_PROVIDER", "anthropic")
 LLM_MODEL_NAME = get_config("LLM_MODEL_NAME", "claude-sonnet-4-20250514")
 CHROMA_PERSIST_DIR = get_config("CHROMA_PERSIST_DIR", "./chroma_db")
 EMBEDDING_MODEL = get_config("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 MCP_CONFIG_PATH = get_config("MCP_CONFIG_PATH", "mcp_config.json")
+
+# Ensure API keys are in os.environ for langchain-anthropic SDK
+get_config("ANTHROPIC_API_KEY", "")
+get_config("ANTHROPIC_API_URL", "")
+get_config("OPENAI_API_KEY", "")
+get_config("OPENAI_API_BASE", "https://api.openai.com/v1")
 
 CONVERSATIONS_DIR = Path(__file__).parent / "conversations"
 CONVERSATIONS_DIR.mkdir(exist_ok=True)
